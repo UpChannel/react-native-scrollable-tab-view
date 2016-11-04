@@ -18,8 +18,6 @@ const ScrollableTabBar = React.createClass({
     goToPage: React.PropTypes.func,
     activeTab: React.PropTypes.number,
     tabs: React.PropTypes.array,
-    underlineColor: React.PropTypes.string,
-    underlineHeight: React.PropTypes.number,
     backgroundColor: React.PropTypes.string,
     activeTextColor: React.PropTypes.string,
     inactiveTextColor: React.PropTypes.string,
@@ -28,7 +26,8 @@ const ScrollableTabBar = React.createClass({
     tabStyle: View.propTypes.style,
     tabsContainerStyle: View.propTypes.style,
     textStyle: Text.propTypes.style,
-    renderTabName: React.PropTypes.func,
+    renderTab: React.PropTypes.func,
+    underlineStyle: View.propTypes.style,
   },
 
   getDefaultProps() {
@@ -36,13 +35,11 @@ const ScrollableTabBar = React.createClass({
       scrollOffset: 52,
       activeTextColor: 'navy',
       inactiveTextColor: 'black',
-      underlineColor: 'navy',
       backgroundColor: null,
-      underlineHeight: 4,
       style: {},
       tabStyle: {},
       tabsContainerStyle: {},
-      renderTabName: this.renderTabName,
+      underlineStyle: {},
     };
   },
 
@@ -124,31 +121,25 @@ const ScrollableTabBar = React.createClass({
     }
   },
 
-  renderTabOption(name, page) {
-    const isTabActive = this.props.activeTab === page;
+  renderTab(name, page, isTabActive, onPressHandler, onLayoutHandler) {
+    const { activeTextColor, inactiveTextColor, textStyle, } = this.props;
+    const textColor = isTabActive ? activeTextColor : inactiveTextColor;
+    const fontWeight = isTabActive ? 'bold' : 'normal';
 
     return <Button
       key={`${name}_${page}`}
       accessible={true}
       accessibilityLabel={name}
       accessibilityTraits='button'
-      onPress={() => this.props.goToPage(page)}
-      onLayout={this.measureTab.bind(this, page)}
+      onPress={() => onPressHandler(page)}
+      onLayout={onLayoutHandler}
     >
-      {this.renderTabName(name, page, isTabActive)}
+      <View style={[styles.tab, this.props.tabStyle, ]}>
+        <Text style={[{color: textColor, fontWeight, }, textStyle, ]}>
+          {name}
+        </Text>
+      </View>
     </Button>;
-  },
-
-  renderTabName(name, page, isTabActive) {
-    const { activeTextColor, inactiveTextColor, textStyle, } = this.props;
-    const textColor = isTabActive ? activeTextColor : inactiveTextColor;
-    const fontWeight = isTabActive ? 'bold' : 'normal';
-
-    return <View style={[styles.tab, this.props.tabStyle, ]}>
-      <Text style={[{color: textColor, fontWeight, }, textStyle, ]}>
-        {name}
-      </Text>
-    </View>;
   },
 
   measureTab(page, event) {
@@ -160,8 +151,8 @@ const ScrollableTabBar = React.createClass({
   render() {
     const tabUnderlineStyle = {
       position: 'absolute',
-      height: this.props.underlineHeight,
-      backgroundColor: this.props.underlineColor,
+      height: 4,
+      backgroundColor: 'navy',
       bottom: 0,
     };
 
@@ -188,11 +179,22 @@ const ScrollableTabBar = React.createClass({
           ref={'tabContainer'}
           onLayout={this.onTabContainerLayout}
         >
-          {this.props.tabs.map((tab, i) => this.renderTabOption(tab, i))}
-          <Animated.View style={[tabUnderlineStyle, dynamicTabUnderline, ]} />
+          {this.props.tabs.map((name, page) => {
+            const isTabActive = this.props.activeTab === page;
+            const renderTab = this.props.renderTab || this.renderTab;
+            return renderTab(name, page, isTabActive, this.props.goToPage, this.measureTab.bind(this, page));
+          })}
+          <Animated.View style={[tabUnderlineStyle, dynamicTabUnderline, this.props.underlineStyle, ]} />
         </View>
       </ScrollView>
     </View>;
+  },
+
+  componentWillReceiveProps(nextProps) {
+    // If the tabs change, force the width of the tabs container to be recalculated
+    if (JSON.stringify(this.props.tabs) !== JSON.stringify(nextProps.tabs) && this.state._containerWidth) {
+      this.setState({ _containerWidth: null, });
+    }
   },
 
   onTabContainerLayout(e) {
@@ -227,7 +229,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 0,
     borderLeftWidth: 0,
     borderRightWidth: 0,
-    borderBottomColor: '#ccc',
+    borderColor: '#ccc',
   },
   tabs: {
     flexDirection: 'row',
