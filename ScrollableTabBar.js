@@ -216,16 +216,17 @@ const ScrollableTabBar = React.createClass({
 
 module.exports = ScrollableTabBar;
 
+const total = 80;
 const styles = StyleSheet.create({
   tab: {
-    height: 49,
+    height: total - 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingLeft: 20,
     paddingRight: 20,
   },
   container: {
-    height: 50,
+    height: total,
     borderWidth: 1,
     borderTopWidth: 0,
     borderLeftWidth: 0,
