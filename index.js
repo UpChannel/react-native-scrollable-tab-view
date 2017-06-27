@@ -38,6 +38,7 @@ const ScrollableTabView = React.createClass({
     scrollWithoutAnimation: PropTypes.bool,
     locked: PropTypes.bool,
     prerenderingSiblingsNumber: PropTypes.number,
+    activeTabStyles: PropTypes.object,
   },
 
   getDefaultProps() {
@@ -228,6 +229,9 @@ const ScrollableTabView = React.createClass({
 
     if (this.props.tabBarBackgroundColor) {
       tabBarProps.backgroundColor = this.props.tabBarBackgroundColor;
+    }
+    if (this.props.activeTabStyles) {
+      tabBarProps.activeTabStyles = this.props.activeTabStyles;
     }
     if (this.props.tabBarActiveTextColor) {
       tabBarProps.activeTextColor = this.props.tabBarActiveTextColor;
