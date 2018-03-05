@@ -11,6 +11,7 @@ const {
   StyleSheet,
   InteractionManager,
   Platform,
+  ViewPagerAndroid,
 } = ReactNative;
 const TimerMixin = require('react-timer-mixin');
 
